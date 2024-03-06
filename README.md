@@ -11,11 +11,15 @@ To make the scripts available from anywhere in shell, Move the project folder to
 ```bash
 sudo mv TerraformBashTools /opt/
 ```
-Then add it to your `PATH`
+dd the script's location to your `PATH` by appending it to your `~/.bashrc` or `~/.zshrc` file:
 ```bash
 echo 'export PATH="$PATH:/opt/TerraformBashTools"' >> ~/.bashrc
 ```
-Note: Path will be applied only after shell is restarted
+Then, source your `.bashrc` or `.zshrc` to apply the changes:
+```bash
+source ~/.bashrc
+```
+
 ***
 ### Terraform Apply Recursive
 

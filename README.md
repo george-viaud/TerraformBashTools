@@ -1,4 +1,4 @@
-# TerraformBashTools
+# Terraform Bash Tools
 Useful bash scripts for use with Terraform cli
 ***
 

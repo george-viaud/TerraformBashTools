@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script Name: Terraform Apply Recursive
-# Description: Iterates over subdirectories to apply Terraform configurations selectively, with optional initialization.
+# Description: Iterates over subdirectories to apply Terraform configurations selectively, with optional initialization and a force apply option.
 # Author: George Viaud
 
 # Year: 2024
@@ -9,13 +9,21 @@
 
 ROOT_DIR=$(pwd)
 
-# Initialize flag variable
+# Initialize flag variables
 perform_init=false
+force_apply=false
 
-# Check for --init argument
-if [[ " $* " == *" --init "* ]]; then
-  perform_init=true
-fi
+# Check for --init and --force arguments
+for arg in "$@"; do
+  case $arg in
+    --init)
+      perform_init=true
+      ;;
+    --force)
+      force_apply=true
+      ;;
+  esac
+done
 
 # Arrays to keep track of applied and skipped directories
 applied_dirs=()
@@ -25,12 +33,10 @@ skipped_dirs=()
 for dir in "$ROOT_DIR"/*/; do
   cd "$dir" || exit
 
-  # Run terraform init if --init argument was provided
   if [ "$perform_init" = true ]; then
     terraform init
   fi
 
-  # Attempt to create a plan and direct output to a variable
   planOutput=$(terraform plan -out=tfplan)
 
   # Check if changes are needed
@@ -39,17 +45,21 @@ for dir in "$ROOT_DIR"/*/; do
     skipped_dirs+=("$(basename "$dir") (No changes)")
   else
     echo "$planOutput"
-    # Construct the prompt message
-    promptMsg=$(basename "$dir")" - Apply this plan? (y/[N]): "
-
-    # Ask the user if they wish to apply the plan
-    read -p "$promptMsg" apply_confirm
-    if [[ $apply_confirm == [yY] ]]; then
-      terraform apply "tfplan"
+    if [ "$force_apply" = true ]; then
+      echo "Force applying $(basename "$dir")"
+      terraform apply -auto-approve "tfplan"
       applied_dirs+=("$(basename "$dir")")
     else
-      echo "Skipped"
-      skipped_dirs+=("$(basename "$dir") (User skipped)")
+      promptMsg=$(basename "$dir")" - Apply this plan? (y/[N]): "
+
+      read -p "$promptMsg" apply_confirm
+      if [[ $apply_confirm == [yY] ]]; then
+        terraform apply "tfplan"
+        applied_dirs+=("$(basename "$dir")")
+      else
+        echo "Skipped"
+        skipped_dirs+=("$(basename "$dir") (User skipped)")
+      fi
     fi
   fi
 

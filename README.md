@@ -31,5 +31,6 @@ A Bash script to iteratively apply Terraform configurations in subdirectories, w
 ```
 
 `--init` flag runs `terraform init` prior to apply
+
 `--force` will automatically changes apply without asking the user (no prompts)
 ***
